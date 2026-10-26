@@ -1,5 +1,5 @@
 // Cache-Version bei jeder Veröffentlichung erhöhen!
-const CACHE = "zeithit-v7";
+const CACHE = "zeithit-v8";
 
 const APP_FILES = [
   "./",
