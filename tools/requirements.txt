@@ -3,3 +3,4 @@ reportlab
 pillow
 fonttools
 brotli
+ytmusicapi

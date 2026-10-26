@@ -6,3 +6,6 @@ cards/
 Thumbs.db
 .claude/
 graphify-out/
+tools/ytmusic_auth.json
+browser.json
+oauth.json

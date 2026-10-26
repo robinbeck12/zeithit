@@ -38,6 +38,17 @@ Interpret aus dem Videotitel vor und fragt nach, ob du sie ändern willst. Der S
 die nächste freie ID; die `TODO`-Platzhalter vom Start werden dabei zuerst belegt.
 Mit `--yes` (und optional `--title`, `--artist`) läuft es ohne Rückfragen.
 
+**Songs aus YouTube Music übernehmen:** Einmalig `ytmusicapi browser` ausführen, die Request-Header
+einer eingeloggten Anfrage von music.youtube.com einfügen und die entstandene `browser.json` nach
+`tools/ytmusic_auth.json` verschieben (steht in der `.gitignore`, nie committen oder teilen). Dann:
+
+```bash
+python tools/import_history.py --source likes --limit 200   # oder library / history
+```
+
+Das Skript listet neue Titel mit Albumjahr und Einbettbarkeit. Du wählst per Nummer aus und
+bestätigst jedes Jahr einzeln, weil das Albumjahr bei Compilations vom Originaljahr abweichen kann.
+
 **Alle Songs prüfen:**
 
 ```bash
