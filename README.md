@@ -85,6 +85,20 @@ python tools/make_cards.py --test       # Testseite mit Beispieldaten (cards/tes
   Die Rückseiten sind dafür pro Reihe gespiegelt angeordnet.
 - Songs ohne echte YouTube-ID (`TODO`) werden übersprungen und gemeldet.
 
+**Als Fotoabzüge drucken (z. B. dm, 15 × 20 cm, mattes Papier):**
+
+```bash
+python tools/make_cards.py --photo      # JPGs in cards/photo/ (mit --test: cards/photo_test/)
+```
+
+- Je Abzug 6 Karten (2 × 3) ohne Abstand, 300 dpi, Schnittmarken im weißen Rand.
+- `NN_vorne.jpg` (QR) und `NN_hinten.jpg` (Jahr) bestellen. Gleiche Nummern liegen Rücken an
+  Rücken: aufeinanderkleben (Sprühkleber oder doppelseitige Klebefolie, kein Klebestift), dann an
+  den Marken in einem Zug schneiden. Die Rückseiten sind schon gespiegelt angeordnet.
+- Der Beschnitt (3 mm) liegt nur an den Außenkanten des Gitters. Am Automaten **randlos** bzw.
+  „Bild füllend" wählen und nicht zuschneiden lassen.
+- Braucht zusätzlich `pymupdf` (steht in `tools/requirements.txt`).
+
 ## Projektstand
 
 Die Umsetzung läuft in Phasen (siehe `CLAUDE.md`, Abschnitt 12).

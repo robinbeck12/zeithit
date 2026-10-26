@@ -8,8 +8,13 @@ Aufruf:
     python tools/make_cards.py              # alle Songs
     python tools/make_cards.py --ids 1-24   # nur diese IDs (z. B. 1-24,30,31)
     python tools/make_cards.py --test       # eine Testseite mit Beispieldaten
+    python tools/make_cards.py --photo      # JPGs für 15 x 20 cm Fotoabzüge (cards/photo/)
 
 Druck: doppelseitig, "an der langen Kante wenden", Skalierung 100 % (nicht "an Seite anpassen").
+
+Foto-Modus: 2 x 3 Karten pro 15 x 20 cm Abzug, Vorder- und Rückseiten als getrennte Bilder
+(NN_vorne.jpg / NN_hinten.jpg). Gleiche Nummern Rücken an Rücken zusammenkleben und an den
+Schnittmarken in einem Zug schneiden. Beschnitt gibt es nur an den Außenkanten des Gitters.
 """
 
 import argparse
@@ -41,6 +46,12 @@ PER_PAGE = COLS * ROWS
 GRID_W, GRID_H = COLS * BOX, ROWS * BOX
 ORIGIN_X = (PAGE_W - GRID_W) / 2
 ORIGIN_Y = (PAGE_H - GRID_H) / 2
+
+# Foto-Layout: 15 x 20 cm Abzug, Karten ohne Abstand direkt nebeneinander (Schnitt durch beide Lagen)
+PHOTO_W, PHOTO_H = 150 * mm, 200 * mm
+PHOTO_COLS, PHOTO_ROWS = 2, 3
+PHOTO_PER_SHEET = PHOTO_COLS * PHOTO_ROWS
+PHOTO_DPI = 300
 
 # ---------- Style-Schema: Schwarz / Rot ----------
 BG = HexColor("#070607")
@@ -253,6 +264,86 @@ def slot_origin(row, col):
     return ORIGIN_X + col * BOX, ORIGIN_Y + (ROWS - 1 - row) * BOX
 
 
+# ---------- Foto-Modus (15 x 20 cm Abzüge) ----------
+def photo_cell(row, col):
+    """Linke untere Ecke der Schnittfläche (60 mm) im Foto-Layout; Reihe 0 liegt oben."""
+    ox = (PHOTO_W - PHOTO_COLS * TRIM) / 2
+    oy = (PHOTO_H - PHOTO_ROWS * TRIM) / 2
+    return ox + col * TRIM, oy + (PHOTO_ROWS - 1 - row) * TRIM
+
+
+def draw_photo_card(c, row, col, draw):
+    """Zeichnet eine Karte auf ihre Schnittfläche; Beschnitt nur an den Außenkanten des Gitters."""
+    x, y = photo_cell(row, col)
+    left = BLEED if col == 0 else 0
+    right = BLEED if col == PHOTO_COLS - 1 else 0
+    top = BLEED if row == 0 else 0
+    bottom = BLEED if row == PHOTO_ROWS - 1 else 0
+    c.saveState()
+    clip = c.beginPath()
+    clip.rect(x - left, y - bottom, TRIM + left + right, TRIM + bottom + top)
+    c.clipPath(clip, stroke=0, fill=0)
+    draw(c, x - BLEED, y - BLEED)
+    c.restoreState()
+
+
+def draw_photo_marks(c, label):
+    """Schnittlinien-Marken im weißen Rand, außerhalb des Beschnitts, plus Seitenbeschriftung."""
+    gx, gy = photo_cell(PHOTO_ROWS - 1, 0)
+    gw, gh = PHOTO_COLS * TRIM, PHOTO_ROWS * TRIM
+    near, far = BLEED + 1 * mm, BLEED + 4 * mm
+    c.setStrokeColor(HexColor("#000000"))
+    c.setLineWidth(0.25)
+    for i in range(PHOTO_COLS + 1):
+        x = gx + i * TRIM
+        c.line(x, gy + gh + near, x, gy + gh + far)
+        c.line(x, gy - near, x, gy - far)
+    for j in range(PHOTO_ROWS + 1):
+        y = gy + j * TRIM
+        c.line(gx - near, y, gx - far, y)
+        c.line(gx + gw + near, y, gx + gw + far, y)
+    c.setFont("Inter", 6)
+    c.setFillColor(HexColor("#555555"))
+    c.drawCentredString(gx + TRIM / 2, gy + gh + BLEED + 2.5 * mm, label)
+
+
+def render_photos(cards, base_url, app_name, out_dir):
+    """Schreibt ein PDF und je Seite ein JPG (300 dpi) für 15 x 20 cm Fotoabzüge."""
+    import pymupdf
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for old in out_dir.glob("*.jpg"):
+        old.unlink()
+    pdf_path = out_dir / "fotoabzuege.pdf"
+    c = canvas.Canvas(str(pdf_path), pagesize=(PHOTO_W, PHOTO_H))
+    c.setTitle(f"{app_name} Fotoabzüge 15x20")
+    c.setAuthor(app_name)
+
+    sheets = [cards[i : i + PHOTO_PER_SHEET] for i in range(0, len(cards), PHOTO_PER_SHEET)]
+    total = len(sheets)
+    for n, chunk in enumerate(sheets, 1):
+        for i, (sid, *_rest) in enumerate(chunk):
+            draw_photo_card(c, i // PHOTO_COLS, i % PHOTO_COLS, lambda cv, bx, by, sid=sid: draw_front(cv, bx, by, sid, base_url))
+        draw_photo_marks(c, f"VORDERSEITE {n:02d}/{total:02d}")
+        c.showPage()
+
+        for i, song in enumerate(chunk):
+            draw_photo_card(c, i // PHOTO_COLS, PHOTO_COLS - 1 - i % PHOTO_COLS, lambda cv, bx, by, song=song: draw_back(cv, bx, by, song))
+        draw_photo_marks(c, f"RÜCKSEITE {n:02d}/{total:02d}")
+        c.showPage()
+    c.save()
+
+    doc = pymupdf.open(pdf_path)
+    for page_no, page in enumerate(doc):
+        n, side = page_no // 2 + 1, "vorne" if page_no % 2 == 0 else "hinten"
+        pix = page.get_pixmap(dpi=PHOTO_DPI, colorspace=pymupdf.csRGB, alpha=False)
+        pix.set_dpi(PHOTO_DPI, PHOTO_DPI)
+        pix.save(str(out_dir / f"{n:02d}_{side}.jpg"), jpg_quality=95)
+    size = f"{pix.width} x {pix.height} px"
+    doc.close()
+    return total, size
+
+
 # ---------- Hauptprogramm ----------
 def load_cards(args, base_url):
     if args.test:
@@ -279,6 +370,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Kartengenerator für ZeitHit")
     ap.add_argument("--ids", help="z. B. 1-24 oder 1-12,30")
     ap.add_argument("--test", action="store_true", help="eine Testseite mit Beispieldaten")
+    ap.add_argument("--photo", action="store_true", help="JPGs für 15 x 20 cm Fotoabzüge statt A4-PDF")
     args = ap.parse_args()
 
     config = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
@@ -293,6 +385,13 @@ def main() -> int:
 
     register_fonts()
     CARDS_DIR.mkdir(exist_ok=True)
+
+    if args.photo:
+        out_dir = CARDS_DIR / ("photo_test" if args.test else "photo")
+        sheets, size = render_photos(cards, base_url, app_name, out_dir)
+        print(f"{len(cards)} Karten auf {sheets} Abzügen (je Vorder- und Rückseite, {size}) -> {out_dir.relative_to(ROOT)}")
+        return 0
+
     out = CARDS_DIR / ("test.pdf" if args.test else "cards.pdf")
 
     c = canvas.Canvas(str(out), pagesize=(PAGE_W, PAGE_H))
