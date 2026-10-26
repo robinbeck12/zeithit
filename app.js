@@ -24,7 +24,8 @@ const el = {
 const MSG_OFFLINE = "Für die Musik wird Internet gebraucht.";
 const MSG_UNKNOWN = "Diese Karte kenne ich nicht.";
 const MSG_NO_VIDEO = "Für diese Karte ist noch kein Song eingetragen.";
-const MSG_NOT_EMBEDDABLE = "Dieser Song lässt sich nicht abspielen. Bitte nächste Karte nehmen.";
+const MSG_NOT_EMBEDDABLE =
+  "Dieser Song lässt sich nicht abspielen. Bitte nächste Karte nehmen.";
 const MSG_CAMERA_DENIED =
   "Kamerazugriff verweigert. Bitte in den iPhone-Einstellungen (Safari bzw. ZeitHit) die Kamera erlauben.";
 const MSG_NO_CAMERA = "Keine Kamera gefunden.";
@@ -114,7 +115,12 @@ function loadYouTubeApi() {
 function onPlayerStateChange(event) {
   const S = window.YT.PlayerState;
   if (event.data === S.PLAYING) setPlaying(true);
-  else if (event.data === S.PAUSED || event.data === S.ENDED || event.data === S.CUED) setPlaying(false);
+  else if (
+    event.data === S.PAUSED ||
+    event.data === S.ENDED ||
+    event.data === S.CUED
+  )
+    setPlaying(false);
 }
 
 function onPlayerError() {
@@ -152,7 +158,8 @@ function tryAutoplay(token) {
     /* ignoriert – dann eben per Tipp */
   }
   setTimeout(() => {
-    if (token === loadToken && !isPlaying() && !el.btnPlay.disabled) el.playHint.hidden = false;
+    if (token === loadToken && !isPlaying() && !el.btnPlay.disabled)
+      el.playHint.hidden = false;
   }, AUTOPLAY_CHECK_MS);
 }
 
@@ -214,7 +221,8 @@ function loadScannerLib() {
 function cameraErrorMessage(err) {
   const text = `${err?.name ?? ""} ${err?.message ?? err ?? ""}`;
   if (/NotAllowed|Permission|denied/i.test(text)) return MSG_CAMERA_DENIED;
-  if (/NotFound|DevicesNotFound|no camera|not found/i.test(text)) return MSG_NO_CAMERA;
+  if (/NotFound|DevicesNotFound|no camera|not found/i.test(text))
+    return MSG_NO_CAMERA;
   return MSG_CAMERA_FAILED;
 }
 
@@ -244,7 +252,8 @@ async function startScan() {
   try {
     await loadScannerLib();
     if (token !== loadToken) return;
-    if (!navigator.mediaDevices?.getUserMedia) throw new Error("NotFound: keine Kamera-API");
+    if (!navigator.mediaDevices?.getUserMedia)
+      throw new Error("NotFound: keine Kamera-API");
     scanner = new window.Html5Qrcode("reader", { verbose: false });
     await scanner.start(
       { facingMode: "environment" },
@@ -260,7 +269,7 @@ async function startScan() {
         scanHandled = true;
         stopScanner().then(() => openScanned(text));
       },
-      () => {} // Frames ohne QR-Code ignorieren
+      () => {}, // Frames ohne QR-Code ignorieren
     );
     if (token !== loadToken) await stopScanner();
   } catch (err) {
@@ -279,7 +288,8 @@ function extractId(text) {
 }
 
 function clearHash() {
-  if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+  if (location.hash)
+    history.replaceState(null, "", location.pathname + location.search);
 }
 
 /** Fehlerfall: Hinweis anzeigen, ein Tipp startet den Scanner wieder. */
