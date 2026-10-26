@@ -1,5 +1,5 @@
 // Cache-Version bei jeder Veröffentlichung erhöhen!
-const CACHE = "hitster-v6";
+const CACHE = "zeithit-v7";
 
 const APP_FILES = [
   "./",

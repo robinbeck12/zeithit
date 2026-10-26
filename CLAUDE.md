@@ -19,9 +19,9 @@ bei den Menschen am Tisch, nicht in der App. Die App ist nur Scanner + verdeckte
 
 ## 2. Feste Entscheidungen (nicht neu diskutieren)
 
-- **Hosting:** GitHub Pages, öffentliches Repo `hitster`, Branch `main`, Root `/`.
+- **Hosting:** GitHub Pages, öffentliches Repo `zeithit`, Branch `main`, Root `/`.
 - **Technik:** Vanilla HTML/CSS/JavaScript (ES-Module). **Kein Build-Schritt, kein Framework.**
-- **Alle Pfade relativ** (`./app.js`), weil die App unter `/hitster/` läuft.
+- **Alle Pfade relativ** (`./app.js`), weil die App unter `/zeithit/` läuft.
 - **QR-Scanner:** `html5-qrcode`, als Datei lokal in `vendor/` abgelegt (nicht per CDN), damit
   die App offline startet. Version pinnen und die Version in `vendor/README.md` notieren.
 - **Musik:** nur YouTube-IDs im Repo. **Niemals MP3s oder andere Audiodateien ins Repo legen**
@@ -41,19 +41,19 @@ pip install segno reportlab pillow  # ggf. in einer venv (.venv, in .gitignore)
 ```
 
 GitHub-Benutzername ermitteln: `gh api user --jq .login`. Daraus ergibt sich die Basis-URL
-`https://<USER>.github.io/hitster/` und wird in `config.json` gespeichert.
+`https://<USER>.github.io/zeithit/` und wird in `config.json` gespeichert.
 
 ## 4. Projektstruktur
 
 ```
-hitster/
+zeithit/
   CLAUDE.md                 (diese Datei)
   README.md                 (kurze Anleitung für Robin, deutsch)
   index.html
   app.js
   style.css
   songs.json
-  config.json               {"appName": "ZeitHit", "baseUrl": "https://<USER>.github.io/hitster/"}
+  config.json               {"appName": "ZeitHit", "baseUrl": "https://<USER>.github.io/zeithit/"}
   manifest.json
   sw.js
   icons/                    icon-180.png, icon-192.png, icon-512.png
@@ -86,7 +86,7 @@ hitster/
 
 ## 6. App-Spezifikation
 
-**QR-Inhalt:** `<baseUrl>#<id>`, z. B. `https://robin.github.io/hitster/#042`.
+**QR-Inhalt:** `<baseUrl>#<id>`, z. B. `https://robin.github.io/zeithit/#042`.
 Die App akzeptiert beim Scan sowohl die volle URL als auch nur die ID (`/(\d{3})$/`).
 Wird die URL mit der normalen iPhone-Kamera gescannt, öffnet sie die App, und das
 `hashchange`/Start-Hash lädt die Karte direkt.
@@ -120,7 +120,7 @@ Gebrauch gedacht. YouTube-Richtlinien verlangen grundsätzlich einen sichtbaren 
 - `index.html`: `viewport-fit=cover`, `apple-touch-icon` (180 px),
   `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style=black-translucent`,
   Safe-Area-Abstände (`env(safe-area-inset-*)`).
-- `sw.js`: Konstante `CACHE = "hitster-v1"`. Beim Install alle App-Dateien vorab cachen
+- `sw.js`: Konstante `CACHE = "zeithit-v1"`. Beim Install alle App-Dateien vorab cachen
   (index, app.js, style.css, songs.json, manifest, Icons, Fonts, vendor). Strategie:
   Cache-First für App-Dateien, Stale-While-Revalidate für `songs.json`. Anfragen an
   fremde Domains (youtube.com, ytimg.com …) **nicht** abfangen. `skipWaiting` +
@@ -187,9 +187,9 @@ Bedienelemente im unteren Daumenbereich.
   `README.md`, leere Seite. Repo erstellen und veröffentlichen:
   ```bash
   git init -b main && git add -A && git commit -m "Initial commit"
-  gh repo create hitster --public --source=. --remote=origin --push
-  gh api -X POST repos/{owner}/hitster/pages -f "source[branch]=main" -f "source[path]=/"
-  gh api repos/{owner}/hitster/pages --jq .html_url   # URL in config.json eintragen
+  gh repo create zeithit --public --source=. --remote=origin --push
+  gh api -X POST repos/{owner}/zeithit/pages -f "source[branch]=main" -f "source[path]=/"
+  gh api repos/{owner}/zeithit/pages --jq .html_url   # URL in config.json eintragen
   ```
 - [x] **P2 PWA:** Manifest, Service Worker, Icons, Fonts, Style-Grundlage.
 - [x] **P3 Player:** `songs.json`, YouTube-Player, Overlay, Hash-Routing (Auflösung später auf Wunsch entfernt).

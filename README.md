@@ -8,7 +8,7 @@ Das Einsortieren der Songs in die Zeitleiste passiert am Tisch.
 Nach dem Scan versucht die App, den Song sofort zu starten. Blockt iOS das automatische
 Abspielen, erscheint „Zum Abspielen tippen" – dann reicht ein Tipp auf den Play-Button.
 
-Veröffentlicht unter: <https://robinbeck12.github.io/hitster/>
+Veröffentlicht unter: <https://robinbeck12.github.io/zeithit/>
 
 ## Lokal testen
 
